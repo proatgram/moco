@@ -11,81 +11,47 @@ namespace moco::wayland::implementation {
         concept ResourceBase = std::is_base_of_v<::wayland::server::resource_t, Derived>;
     }
 
-    // Don't even ask me to reiterate how this works
-    // It's basically just template hell--just use it
-    // and don't pay attention to how it works, you'll
-    // be better off that way in the long run :)
     template <ResourceBase Resource, typename Derived>
-    class ObjectImplementationBase : public Resource {
+    class ObjectImplementationBase : public Resource, public std::enable_shared_from_this<Derived> {
         public:
-            struct ObjectDataBase {
-                virtual ~ObjectDataBase();
-                std::shared_ptr<Derived> resource;
-            };
-
             /**
              * @brief Creates object implementation for a resource
              *
              * @details Will safely contruct or re-use an instance of
              * an object implementation for a resource. Usage of this
-             * function prevents a mismatch between the underlying
-             * object data and the implementation pointer.
+             * function prevents multiple implementation instances
+             * to be created for a specific resource.
              *
              * @param `resource`: The resource you are creating
-             * implementation for
+             * or getting implementation for.
              *
              * @return `std::shared_ptr<Derived>`: The new or already
-             * created implementation for the specified resource
+             * created implementation for the specified resource.
              *
              */
             static auto Create(Resource resource) -> std::shared_ptr<Derived> {
-                std::shared_ptr<Derived> ptr;
+                std::shared_ptr<Derived> implementationInstance;
 
                 // If the resource already has an implementation instance, use that.
-                // If we just create another shared_ptr, it creates a mismatch between
-                // that shared_ptr and what is referred to in the object datas resource
+                // Otherwise, create a new implementation object and assign it to the resource.
                 try {
-                    // Can throw if it doesn't have the value (e.g. if it's uninitialized)
-                    ptr = resource.user_data().template get<ObjectData_t<>>()->resource;
-                    if (ptr) {
-                        return ptr;
-                    }
-                } catch (const std::exception &exception) {}
-
-                // If either the pointer isn't valid or the object data isn't valid, we
-                // are safe to create a new implementation instance
-                ptr = std::make_shared<Derived>(resource, Private());
-                ptr->GetObjectData()->resource = ptr;
-                return ptr;
-            }
-
-            // Allows derived classes to easily get the object data as their own type
-            template <class T = Derived>
-            inline auto GetObjectData() -> std::shared_ptr<typename T::ObjectData> {
-                return static_pointer_cast<typename T::ObjectData>(m_objectData);
-            }
-        protected:
-            template <typename T = Derived>
-            using ObjectData_t = std::shared_ptr<typename T::ObjectData>;
-
-            struct Private{ Private() = default; };
-
-            inline ObjectImplementationBase(const Resource &resource) : Resource(resource), m_objectData() {
-                // Assigns the user data either from or to the raw object
-                try {
-                    m_objectData = this->user_data().template get<ObjectDataBase_t>();
+                    // Can throw if it isn't able to retreieve it as the templated value
+                    // (e.g. if it's uninitialized)
+                    implementationInstance = resource.user_data().template get<std::shared_ptr<Derived>>();
                 } catch (const std::exception &exception) {
-                    this->user_data().template get<ObjectDataBase_t>() = m_objectData;
+                    implementationInstance = std::make_shared<Derived>(resource, Private());
+                    resource.user_data() = implementationInstance;
                 }
+
+                return implementationInstance;
             }
 
-            inline ~ObjectImplementationBase() {
-                // Constrains derived to being a derived class of us
-                static_assert(std::is_base_of_v<ObjectImplementationBase<Resource, Derived>, Derived>);
-            }
+            ObjectImplementationBase() = delete;
+            ~ObjectImplementationBase() = default;
 
-        private:
-            using ObjectDataBase_t = std::shared_ptr<ObjectDataBase>;
-            ObjectDataBase_t m_objectData;
+        protected:
+            struct Private{Private() = default;};
+
+            ObjectImplementationBase(const Resource &resource) : Resource(resource) {};
     };
 }  // moco::wayland::implementation

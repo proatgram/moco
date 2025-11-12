@@ -5,14 +5,15 @@
 using namespace moco::wayland::implementation;
 using namespace wayland::server;
 
+SharedMemory::SharedMemory(shm_t shm, Private) :
+    SharedMemory(shm) {}
+
 SharedMemory::SharedMemory(shm_t shm) :
     ObjectImplementationBase(shm)
 {
     on_create_pool() = [this](shm_pool_t pool, int32_t fd, size_t size) -> void {HandleCreatePool(pool, fd, size);};
     on_destroy() = [this]() -> void {HandleDestroy();};
 }
-
-SharedMemory::SharedMemory(shm_t shm, Private) : SharedMemory(shm) {}
 
 auto SharedMemory::HandleCreatePool(shm_pool_t pool, int32_t fd, size_t size) -> void {
     std::shared_ptr<SharedMemoryPool> sharedMemoryPool = SharedMemoryPool::Create(pool);

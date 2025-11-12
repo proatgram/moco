@@ -7,18 +7,15 @@
 #include <span>
 
 namespace moco::wayland::implementation {
-    class SharedMemoryPool : private ObjectImplementationBase<::wayland::server::shm_pool_t, SharedMemoryPool>, std::enable_shared_from_this<SharedMemoryPool> {
+    class SharedMemoryPool : private ObjectImplementationBase<::wayland::server::shm_pool_t, SharedMemoryPool> {
         private:
         public:
-            using ObjectImplementationBase<::wayland::server::shm_pool_t, SharedMemoryPool>::GetObjectData;
+            
             using ObjectImplementationBase<::wayland::server::shm_pool_t, SharedMemoryPool>::Create;
             SharedMemoryPool(::wayland::server::shm_pool_t shm_pool, Private);
 
             ~SharedMemoryPool();
 
-            struct ObjectData : public ObjectDataBase {
-                std::span<uint8_t> memorySpace;
-            };
 
             /**
              * @brief Assigns this memory pool a memory space
@@ -33,10 +30,10 @@ namespace moco::wayland::implementation {
 
             SharedMemoryPool(::wayland::server::shm_pool_t shm_pool);
 
-            auto HandleCreateBuffer(SharedMemoryBuffer buffer, int offset, int width, int height, int stride, ::wayland::server::shm_format format) -> void;           
+            auto HandleCreateBuffer(::wayland::server::buffer_t buffer, int offset, int width, int height, int stride, ::wayland::server::shm_format format) -> void;           
             auto HandleDestroy() -> void;
             auto HandleResize(size_t size) -> void;
 
-            ObjectData_t<> m_objectData;
+            std::span<uint8_t> memorySpace;
     };
 }  // namespace moco::wayland::implementation
