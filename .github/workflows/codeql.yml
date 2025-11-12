@@ -87,7 +87,7 @@ jobs:
       shell: bash
       run: |
         sudo apt-get -y update
-        sudo apt-get -y install waylandpp
+        sudo apt-get -y install waylandpp-dev
         cmake -B build/
         cmake --build build/
 
