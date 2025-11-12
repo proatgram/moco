@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.1)
+cmake_minimum_required(VERSION 3.31)
 project(moco
     VERSION 0.1
     DESCRIPTION "A mobile oriented Wayland Compositor written in C++"
