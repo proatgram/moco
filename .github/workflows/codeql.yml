@@ -86,8 +86,8 @@ jobs:
       if: matrix.build-mode == 'manual'
       shell: bash
       run: |
-        apt-get -y update
-        apt-get -y install waylandpp
+        sudo apt-get -y update
+        sudo apt-get -y install waylandpp
         cmake -B build/
         cmake --build build/
 
