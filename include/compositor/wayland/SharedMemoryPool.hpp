@@ -7,11 +7,12 @@
 #include <span>
 
 namespace moco::wayland::implementation {
-    class SharedMemoryPool : private ObjectImplementationBase<::wayland::server::shm_pool_t, SharedMemoryPool> {
-        private:
+    class SharedMemoryPool : public ObjectImplementationBase<::wayland::server::shm_pool_t, SharedMemoryPool> {
+            using ObjectImplementationBase::on_destroy;
+            using ObjectImplementationBase::on_create_buffer;
+            using ObjectImplementationBase::on_resize;
+
         public:
-            
-            using ObjectImplementationBase<::wayland::server::shm_pool_t, SharedMemoryPool>::Create;
             SharedMemoryPool(::wayland::server::shm_pool_t shm_pool, Private);
 
             ~SharedMemoryPool();

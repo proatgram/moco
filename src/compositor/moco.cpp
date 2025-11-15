@@ -3,7 +3,6 @@
 using namespace moco::compositor;
 using namespace wayland::server;
 
-#include <iostream>
 #include <string>
 
 Compositor::Compositor() :

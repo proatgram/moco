@@ -25,11 +25,15 @@ namespace moco::wayland::implementation {
              * @param `resource`: The resource you are creating
              * or getting implementation for.
              *
+             * @param `args`: Other variadic arguments for the construction
+             * of the implementation.
+             *
              * @return `std::shared_ptr<Derived>`: The new or already
              * created implementation for the specified resource.
              *
              */
-            static auto Create(Resource resource) -> std::shared_ptr<Derived> {
+            template <typename... Args>
+            static auto Create(Resource resource, Args&&... args) -> std::shared_ptr<Derived> {
                 std::shared_ptr<Derived> implementationInstance;
 
                 // If the resource already has an implementation instance, use that.
@@ -39,7 +43,7 @@ namespace moco::wayland::implementation {
                     // (e.g. if it's uninitialized)
                     implementationInstance = resource.user_data().template get<std::shared_ptr<Derived>>();
                 } catch (const std::exception &exception) {
-                    implementationInstance = std::make_shared<Derived>(resource, Private());
+                    implementationInstance = std::make_shared<Derived>(resource, std::forward<Args>(args)..., Private());
                     resource.user_data() = implementationInstance;
                 }
 

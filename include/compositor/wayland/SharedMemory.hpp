@@ -3,13 +3,13 @@
 #include <wayland-server-protocol.hpp>
 
 #include "ObjectImplementationBase.hpp"
-#include <SharedMemoryPool.hpp>
 
 namespace moco::wayland::implementation {
-    class SharedMemory : private ObjectImplementationBase<::wayland::server::shm_t, SharedMemory> {
-        public:
-            using ObjectImplementationBase<::wayland::server::shm_t, SharedMemory>::Create;
+    class SharedMemory : public ObjectImplementationBase<::wayland::server::shm_t, SharedMemory> {
+            using ObjectImplementationBase::on_create_pool;
+            using ObjectImplementationBase::on_destroy;
 
+        public:
             SharedMemory(::wayland::server::shm_t shm, Private);
 
         private:
@@ -17,5 +17,16 @@ namespace moco::wayland::implementation {
 
             auto HandleCreatePool(::wayland::server::shm_pool_t pool, int32_t fd, size_t size) -> void;
             auto HandleDestroy() -> void;
+    };
+
+    class GlobalSharedMemory : private ::wayland::server::global_shm_t {
+            using ::wayland::server::global_shm_t::on_bind;
+        public:
+            GlobalSharedMemory(::wayland::server::display_t display);
+            
+        private:
+            static auto OnBind(::wayland::server::client_t client, ::wayland::server::shm_t shm) -> void;
+
+            static constexpr std::array<::wayland::server::shm_format, 2> s_supportedFormats = {::wayland::server::shm_format::argb8888, ::wayland::server::shm_format::xrgb8888};
     };
 }  // namespace moco::wayland::implementation

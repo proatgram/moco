@@ -23,8 +23,6 @@ SharedMemoryPool::SharedMemoryPool(shm_pool_t shm_pool, SharedMemoryPool::Privat
 SharedMemoryPool::~SharedMemoryPool() {
     int result = munmap(memorySpace.data(), memorySpace.size());
     if (result == -1) {
-        // TODO: We shouldn't throw an exception here, because nothing can catch it
-        // as we detatch the thread. What to do?
         std::cerr << __PRETTY_FUNCTION__ << ":"
                   << std::system_error(std::error_code(errno, std::system_category())).what() 
                   << std::endl;
@@ -40,12 +38,18 @@ auto SharedMemoryPool::HandleDestroy() -> void {
 
 auto SharedMemoryPool::HandleCreateBuffer(buffer_t buffer, int offset, int width, int height, int stride, shm_format format) -> void {
     switch (format) {
+        case shm_format::argb8888:
+            SharedMemoryBuffer<shm_format::argb8888>::Create(buffer)->AssignData(memorySpace.subspan(offset, height * stride), shared_from_this())->SetBufferFormat(height, width, stride);
+            break;
+
+        case shm_format::xrgb8888:
+            SharedMemoryBuffer<shm_format::xrgb8888>::Create(buffer)->AssignData(memorySpace.subspan(offset, height * stride), shared_from_this())->SetBufferFormat(height, width, stride);
         default:
+            std::cerr << __PRETTY_FUNCTION__
+                      << ": Unsupported compositor pixel format."
+                      << std::endl;
             break;
     }
-
-    // Guarenteed to have pointer to this, otherwise this object wouldn't exist
-    SharedMemoryBuffer::Create(buffer)->AssignData(memorySpace.subspan(offset, height * stride), shared_from_this());
 }
 
 auto SharedMemoryPool::HandleResize(size_t newSize) -> void {
