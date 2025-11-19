@@ -37,19 +37,7 @@ auto SharedMemoryPool::HandleDestroy() -> void {
 }
 
 auto SharedMemoryPool::HandleCreateBuffer(buffer_t buffer, int offset, int width, int height, int stride, shm_format format) -> void {
-    switch (format) {
-        case shm_format::argb8888:
-            SharedMemoryBuffer<shm_format::argb8888>::Create(buffer)->AssignData(memorySpace.subspan(offset, height * stride), shared_from_this())->SetBufferFormat(height, width, stride);
-            break;
-
-        case shm_format::xrgb8888:
-            SharedMemoryBuffer<shm_format::xrgb8888>::Create(buffer)->AssignData(memorySpace.subspan(offset, height * stride), shared_from_this())->SetBufferFormat(height, width, stride);
-        default:
-            std::cerr << __PRETTY_FUNCTION__
-                      << ": Unsupported compositor pixel format."
-                      << std::endl;
-            break;
-    }
+    Buffer::Create(buffer, format)->AssignData(memorySpace.subspan(offset, height * stride), shared_from_this())->SetBufferFormat(height, width, stride);
 }
 
 auto SharedMemoryPool::HandleResize(size_t newSize) -> void {

@@ -69,3 +69,22 @@ target_link_libraries(moco_wayland_Region
         wayland-server-extra++
         PkgConfig::pixman
 )
+
+add_library(moco_wayland_Surface
+    "${CMAKE_CURRENT_SOURCE_DIR}/Surface.cpp"
+)
+add_library(moco::wayland::Surface ALIAS moco_wayland_Surface)
+
+target_include_directories(moco_wayland_Surface
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/compositor/wayland>
+        $<INSTALL_INTERFACE:include/compositor/wayland>
+)
+
+target_link_libraries(moco_wayland_Surface
+    PUBLIC
+        wayland-server++
+        wayland-server-extra++
+        PkgConfig::pixman
+)
+
