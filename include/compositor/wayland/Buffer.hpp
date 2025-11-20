@@ -28,6 +28,18 @@ namespace moco::wayland::implementation {
                 return m_format;
             }
 
+            inline auto GetHeight() const -> size_t {
+                return m_bufferHeight;
+            }
+
+            inline auto GetWidth() const -> size_t {
+                return m_bufferWidth;
+            }
+
+            inline auto GetStride() const -> size_t {
+                return m_bufferStride;
+            }
+
             inline auto AssignData(std::span<uint8_t> data, std::shared_ptr<SharedMemoryPool> parentPool) -> std::shared_ptr<Buffer> {
                 m_bufferData = data;
                 m_parentPool = parentPool;

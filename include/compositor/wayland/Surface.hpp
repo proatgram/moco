@@ -1,17 +1,13 @@
 #pragma once
 
 #include "ObjectImplementationBase.hpp"
-
 #include "Buffer.hpp"
 
-#include <vector>
+#include <memory>
 #include <wayland-server-protocol.hpp>
+#include <pixman.h>
 
 namespace moco::wayland::implementation {
-    struct SurfaceState {
-
-    };
-
     class Surface : public ObjectImplementationBase<::wayland::server::surface_t, Surface> {
         using ObjectImplementationBase::on_destroy;
         using ObjectImplementationBase::on_attach;
@@ -27,11 +23,51 @@ namespace moco::wayland::implementation {
 
     public:
         Surface(::wayland::server::surface_t surface, Private);
+        struct Area {
+            int x, y;
+            size_t width, height;
+        };
 
+        class SurfaceState {
+            public:
+                SurfaceState(const std::shared_ptr<Buffer> &buffer);
+                SurfaceState() = default;
+                ~SurfaceState();
+
+                SurfaceState(const SurfaceState &other);
+                SurfaceState(SurfaceState &&other) = delete;
+
+                auto AddBuffer(const std::shared_ptr<Buffer> &buffer) -> void;
+                auto GetBuffer() const -> std::shared_ptr<Buffer>;
+                auto AddDamage(int x, int y, int width, int height) -> void;
+                auto GetDamageTracker() const -> pixman_region32_t;
+                auto GetDamagedRegions() const -> std::vector<Area>;
+
+                // Will not reset the underlying buffer, only resets modifications
+                // since last transaction.
+                // Buffer changing happens when AddBuffer is called ONLY.
+                auto Reset() -> void;
+
+            private:
+                std::shared_ptr<Buffer> m_surfaceBuffer;
+                pixman_region32_t m_damageTracker;
+
+                ::wayland::server::output_transform m_bufferTransform = ::wayland::server::output_transform::normal;
+                int m_bufferScale;
+        };
     private:
         Surface(::wayland::server::surface_t surface);
 
+        auto HandleAttach(::wayland::server::buffer_t buffer, int x, int y) -> void;
+        auto HandleDamage(int x, int y, int width, int height) -> void;
+        auto HandleBufferDamage(int x, int y, int width, int height) -> void;
+        
+        // Helper function to apply the given transformations and return
+        // a vector holding the resulting transformations
+        auto ApplyTransformations(const std::vector<Area> &areas, int scale, ::wayland::server::output_transform transform) -> std::vector<Area>;
 
+        SurfaceState m_pendingState;
+        SurfaceState m_activeState;
 
     };
-}  // namesoace moco::wayland::implementation
+}  // namespace moco::wayland::implementation

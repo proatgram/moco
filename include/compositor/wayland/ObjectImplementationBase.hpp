@@ -50,6 +50,23 @@ namespace moco::wayland::implementation {
                 return implementationInstance;
             }
 
+            /**
+             * @brief Returns the implementation for a resource
+             *
+             * @details Will safetly return an already constructed instance
+             * of an object implementation for a resource. Usage of this
+             * function is only valid if the construction already exists and
+             * has happened.
+             *
+             * @param `resource`: The resource you want the implementation for
+             *
+             * @return `std::shared_ptr<Derived>`: The already created implementationfor the specified resource.
+             *
+             */
+            static auto Get(Resource resource) -> std::shared_ptr<Derived> {
+                return resource.user_data().template get<std::shared_ptr<Derived>>();
+            }
+
             ObjectImplementationBase() = delete;
             ~ObjectImplementationBase() = default;
 
