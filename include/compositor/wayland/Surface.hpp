@@ -30,6 +30,23 @@ namespace moco::wayland::implementation {
             size_t width, height;
         };
 
+        enum class Error : uint32_t {
+            InvalidScale = 0,
+            InvlalidTransform = 1,
+            InvalidSize = 2,
+            InvalidOffset = 3,
+            DefunctRoleObject = 4
+        };
+
+        enum class Roles : uint32_t {
+
+        };
+
+        auto SetRole(Roles role) -> void;
+        auto GetRole() const -> Roles;
+
+        auto HasContent() -> bool;
+
         /**
          * @brief Surface State Tracker
          *
@@ -97,7 +114,7 @@ namespace moco::wayland::implementation {
                 pixman_region32_t m_damageTracker;
 
                 ::wayland::server::output_transform m_bufferTransform = ::wayland::server::output_transform::normal;
-                int m_bufferScale;
+                int m_bufferScale{1};
 
                 size_t m_bufferOffsetX;
                 size_t m_bufferOffsetY;
@@ -129,6 +146,8 @@ namespace moco::wayland::implementation {
         
         SurfaceState m_pendingState;
         std::queue<SurfaceState> m_activeStates;
+
+        Roles m_surfaceRole;
 
     };
 }  // namespace moco::wayland::implementation

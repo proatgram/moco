@@ -13,6 +13,7 @@ namespace moco::wayland::implementation {
 
     template <ResourceBase Resource, typename Derived>
     class ObjectImplementationBase : public Resource, public std::enable_shared_from_this<Derived> {
+        using Resource::post_error;
         public:
             /**
              * @brief Creates object implementation for a resource
@@ -33,7 +34,7 @@ namespace moco::wayland::implementation {
              *
              */
             template <typename... Args>
-            static auto Create(Resource resource, Args&&... args) -> std::shared_ptr<Derived> {
+            inline static auto Create(Resource resource, Args&&... args) -> std::shared_ptr<Derived> {
                 std::shared_ptr<Derived> implementationInstance;
 
                 // If the resource already has an implementation instance, use that.
@@ -63,8 +64,13 @@ namespace moco::wayland::implementation {
              * @return `std::shared_ptr<Derived>`: The already created implementationfor the specified resource.
              *
              */
-            static auto Get(Resource resource) -> std::shared_ptr<Derived> {
+            inline static auto Get(Resource resource) -> std::shared_ptr<Derived> {
                 return resource.user_data().template get<std::shared_ptr<Derived>>();
+            }
+
+            template <typename ErrorType>
+            inline auto PostError(ErrorType error, const std::string &errorMessage) {
+                this->post_error(static_cast<int>(error), errorMessage);
             }
 
             ObjectImplementationBase() = delete;

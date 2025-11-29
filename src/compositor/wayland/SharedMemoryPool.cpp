@@ -1,7 +1,9 @@
 #include "SharedMemoryPool.hpp"
+#include "SharedMemory.hpp"
 
 #include <format>
 #include <iostream>
+#include <algorithm>
 
 #include <sys/mman.h>
 
@@ -37,6 +39,10 @@ auto SharedMemoryPool::HandleDestroy() -> void {
 }
 
 auto SharedMemoryPool::HandleCreateBuffer(buffer_t buffer, int offset, int width, int height, int stride, shm_format format) -> void {
+    if (std::find(SharedMemory::GetSupportedFormats().begin(), SharedMemory::GetSupportedFormats().end(), format) == SharedMemory::GetSupportedFormats().end()) {
+        PostError(SharedMemory::Error::InvalidFormat, "Invalid or unsupported format specified in buffer creation.");
+    }
+
     Buffer::Create(buffer, format)->AssignData(memorySpace.subspan(offset, height * stride), shared_from_this())->SetBufferFormat(height, width, stride);
 }
 

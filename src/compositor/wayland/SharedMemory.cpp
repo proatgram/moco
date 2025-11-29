@@ -17,14 +17,28 @@ SharedMemory::SharedMemory(shm_t shm) :
     on_destroy() = [this]() -> void {HandleDestroy();};
 }
 
+auto SharedMemory::GetSupportedFormats() -> decltype(s_supportedFormats) {
+    return s_supportedFormats;
+}
+
 auto SharedMemory::HandleCreatePool(shm_pool_t pool, int32_t fd, size_t size) -> void {
     std::shared_ptr<SharedMemoryPool> sharedMemoryPool = SharedMemoryPool::Create(pool);
 
     // For now, no excecution permissions, not sure if it's neccisary
     void *addr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (addr == MAP_FAILED) {
-        throw std::system_error(std::error_code(errno, std::system_category()));
-        
+        switch (errno) {
+            case EACCES:
+            case EBADFD:
+                PostError(Error::InvalidFd, "fd is not a valid file descriptor.");
+                break;
+            case EINVAL:
+                PostError(Error::InvalidStride, "mmap: Address, length, or offset is bad.");
+                break;
+            default:
+                std::error_code err = std::error_code(errno, std::system_category());
+                std::cerr << __PRETTY_FUNCTION__ << ": " << err.message() << std::endl;
+        }
     }
 
     sharedMemoryPool->Assign(std::span<uint8_t>(reinterpret_cast<uint8_t*>(addr), size));
@@ -42,7 +56,7 @@ GlobalSharedMemory::GlobalSharedMemory(display_t display) :
 
 auto GlobalSharedMemory::OnBind(client_t client, shm_t shm) -> void {
     std::shared_ptr<SharedMemory> sharedMemory = SharedMemory::Create(shm);
-    for (const auto format : s_supportedFormats) {
+    for (const auto format : sharedMemory->GetSupportedFormats()) {
         sharedMemory->format(format);
     }
 }

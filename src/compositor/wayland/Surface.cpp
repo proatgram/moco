@@ -7,6 +7,18 @@
 using namespace moco::wayland::implementation;
 using namespace wayland::server;
 
+auto Surface::SetRole(Roles role) -> void {
+    m_surfaceRole = role;
+}
+
+auto Surface::GetRole() const -> Roles {
+    return m_surfaceRole;
+}
+
+auto Surface::HasContent() -> bool {
+    return (m_activeStates.front().GetBuffer() != nullptr);
+}
+
 Surface::SurfaceState::SurfaceState(const std::shared_ptr<Buffer> &buffer) :
     m_buffer(buffer)
 {
@@ -236,6 +248,12 @@ Surface::Surface(surface_t surface) :
 }
 
 auto Surface::HandleAttach(buffer_t buffer, [[maybe_unused]] int x = 0, [[maybe_unused]] int y = 0) -> void {
+    // When the bound wl_surface version is 5 or higher,
+    // passing any non-zero x or y is a protocol violation
+    if (get_version() >= 5 && x != 0 || y != 0) {
+        PostError(Error::InvalidOffset, "Protocol Violation: Setting anything other than 0 for x and y in wl_surface::attach in version >= 5 is a violation. Use wl_surface::offset instead.");
+    }
+
     // The buffer should be defined with implementation here. It's
     // undefined anyway if it's not, but since it should be defined
     // we can use `Get`, which allows us to not have to specify a format.
@@ -261,6 +279,11 @@ auto Surface::HandleSetInputRegion(region_t region) -> void {
 }
 
 auto Surface::HandleCommit() -> void {
+    if (m_pendingState.GetBuffer()->GetHeight() / m_pendingState.GetBufferScale() % 2 != 0 ||
+        m_pendingState.GetBuffer()->GetWidth() / m_pendingState.GetBufferScale() % 2 != 0) {
+        PostError(Error::InvalidSize, "Buffer size must be an integer multiple of the scale.");
+    }
+
     // Once we get the commit request, we know that no other
     // transactions will happen, thus we can safely convert
     // surface to buffer.
@@ -274,10 +297,17 @@ auto Surface::HandleCommit() -> void {
 }
 
 auto Surface::HandleSetBufferTransform(output_transform transform) -> void {
+    // Should post InvalidTransform error if transform is invalid,
+    // however I don't think we can get an invalid transform here,
+    // as it should be a valid output_transform object.
     m_pendingState.SetBufferTransform(transform);
 }
 
 auto Surface::HandleSetBufferScale(int scale) -> void {
+    if (scale <= 0) {
+        PostError(Error::InvalidScale, "Buffer scale must be greater than 0.");
+    }
+
     m_pendingState.SetBufferScale(scale);
 }
 
