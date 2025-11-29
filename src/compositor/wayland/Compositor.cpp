@@ -1,6 +1,7 @@
 #include "Compositor.hpp"
 
 #include "Region.hpp"
+#include "Surface.hpp"
 
 using namespace moco::wayland::implementation;
 using namespace wayland::server;
@@ -17,7 +18,7 @@ Compositor::Compositor(compositor_t compositor) :
 }
 
 auto Compositor::HandleCreateSurface(surface_t surface) -> void {
-
+    Surface::Create(surface);
 }
 
 auto Compositor::HandleCreateRegion(region_t region) -> void {
