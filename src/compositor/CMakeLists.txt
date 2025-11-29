@@ -15,4 +15,13 @@ target_link_libraries(moco_compositor
         wayland-server-extra++
 )
 
+add_library(moco_helper_Matrix INTERFACE)
+add_library(moco::helper::Matrix ALIAS moco_helper_Matrix)
+
+target_include_directories(moco_helper_Matrix
+    INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/compositor/helper>
+        $<INSTALL_INTERFACE:include/compositor/helper>
+)
+
 add_subdirectory("wayland")

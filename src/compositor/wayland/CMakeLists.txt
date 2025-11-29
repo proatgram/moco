@@ -86,5 +86,6 @@ target_link_libraries(moco_wayland_Surface
         wayland-server++
         wayland-server-extra++
         PkgConfig::pixman
+        moco::helper::Matrix
 )
 

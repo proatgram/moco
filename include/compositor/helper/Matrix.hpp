@@ -202,6 +202,13 @@ namespace moco::helper {
                 return *this;
             }
 
+            /**
+             * @brief Translation
+             *
+             * @param `countX`: Translation `countX` units on the X-Axis.
+             * @param `countY`: Translation `countY` units on the Y-Axis.
+             *
+             */
             inline auto AddTranslation(int countX, int countY) -> Transformation& {
                 auto translationMatrix = s_defaultTransformationMatrix;
                 translationMatrix[0][2] = countX;
@@ -247,6 +254,7 @@ namespace moco::helper {
             /**
              * @brief Rotates the point around the origin
              *
+             * @param `radians`: Angle in radians of the rotation.
              */
             inline auto AddRotate(double radians) -> Transformation& {
                 auto rotationMatrix = s_defaultTransformationMatrix;
@@ -259,9 +267,9 @@ namespace moco::helper {
             }
 
         private:
-            inline static const Matrix<3, 3> s_defaultTransformationMatrix{{1, 0, 0}, 
-                                                {0, 1, 0},
-                                                {0, 0, 1}};
+            inline static const Matrix<3, 3> s_defaultTransformationMatrix{ {1, 0, 0}, 
+                                                                            {0, 1, 0},
+                                                                            {0, 0, 1} };
             Matrix<3, 3> m_transformationMatrix;
 
             int m_x;
