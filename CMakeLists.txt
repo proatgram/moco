@@ -13,5 +13,6 @@ find_package(waylandpp REQUIRED)
 
 pkg_check_modules(libdrm REQUIRED IMPORTED_TARGET GLOBAL libdrm)
 pkg_check_modules(pixman REQUIRED IMPORTED_TARGET GLOBAL pixman-1)
+pkg_check_modules(xkbcommon REQUIRED IMPORTED_TARGET GLOBAL xkbcommon)
 
 add_subdirectory("src")

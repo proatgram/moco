@@ -89,3 +89,37 @@ target_link_libraries(moco_wayland_Surface
         moco::helper::Matrix
 )
 
+add_library(moco_wayland_Seat
+    "${CMAKE_CURRENT_SOURCE_DIR}/Seat.cpp"
+)
+add_library(moco::wayland::Seat ALIAS moco_wayland_Seat)
+
+target_include_directories(moco_wayland_Seat
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/compositor/wayland>
+        $<INSTALL_INTERFACE:include/compositor/wayland>
+)
+
+target_link_libraries(moco_wayland_Seat
+    PUBLIC
+        wayland-server++
+        wayland-server-extra++
+)
+
+add_library(moco_wayland_Keyboard
+    "${CMAKE_CURRENT_SOURCE_DIR}/Keyboard.cpp"
+)
+add_library(moco::wayland::Keyboard ALIAS moco_wayland_Keyboard)
+
+target_include_directories(moco_wayland_Keyboard
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/compositor/wayland>
+        $<INSTALL_INTERFACE:include/compositor/wayland>
+)
+
+target_link_libraries(moco_wayland_Keyboard
+    PUBLIC
+        wayland-server++
+        wayland-server-extra++
+        PkgConfig::xkbcommon
+)
