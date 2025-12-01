@@ -48,8 +48,68 @@ Keyboard::Keyboard(keyboard_t keyboard) :
 
     keymap(keyboard_keymap_format::xkb_v1, m_xkbKeymapFd, keymapStringSize);
 
-    // Change for Event system?
-    m_keyboardEventSource = get_client().get_display().get_event_loop().add_idle([this]() -> void {});
+    m_keymapEvent = compositor::Events::Subscribe(Events::Keymap, [this](std::any eventData) -> void {
+        try {
+            Keymap_EventData data = std::any_cast<Keymap_EventData>(eventData);
+
+            keymap(data.Format, data.Fd, data.Size);
+        } catch (const std::bad_any_cast &err) {
+            std::cerr << __PRETTY_FUNCTION__ << ": "
+                      << "Event data error: Type mismatch."
+                      << std::endl;
+        }
+    });
+    m_enterEvent = compositor::Events::Subscribe(Events::Enter, [this](std::any eventData) -> void {
+        try {
+            Enter_EventData data = std::any_cast<Enter_EventData>(eventData);
+            enter(data.Serial, *data.Surface, data.Keys);
+        } catch (const std::bad_any_cast &err) {
+            std::cerr << __PRETTY_FUNCTION__ << ": "
+                      << "Event data error: Type mismatch."
+                      << std::endl;
+        }
+    });
+    m_leaveEvent = compositor::Events::Subscribe(Events::Leave, [this](std::any eventData) -> void {
+        try {
+            Leave_EventData data = std::any_cast<Leave_EventData>(eventData);
+            leave(data.Serial, *data.Surface);
+        } catch (const std::bad_any_cast &err) {
+            std::cerr << __PRETTY_FUNCTION__ << ": "
+                      << "Event data error: Type mismatch."
+                      << std::endl;
+        }
+    });
+    m_keyEvent = compositor::Events::Subscribe(Events::Key, [this](std::any eventData) -> void {
+        try {
+            Key_EventData data = std::any_cast<Key_EventData>(eventData);
+            key(data.Serial, data.Time, data.Key, data.KeyState);
+        } catch (const std::bad_any_cast &err) {
+            std::cerr << __PRETTY_FUNCTION__ << ": "
+                      << "Event data error: Type mismatch."
+                      << std::endl;
+        }
+    });
+    m_modifierEvent = compositor::Events::Subscribe(Events::Modifier, [this](std::any eventData) -> void {
+        try {
+            Modifier_EventData data = std::any_cast<Modifier_EventData>(eventData);
+            modifiers(data.Serial, data.ModsDepressed, data.ModsLatched, data.ModsLocked, data.Group);
+        } catch (const std::bad_any_cast &err) {
+            std::cerr << __PRETTY_FUNCTION__ << ": "
+                      << "Event data error: Type mismatch."
+                      << std::endl;
+        }
+    });
+    m_repeatInfoEvent = compositor::Events::Subscribe(Events::RepeatInfo, [this](std::any eventData) -> void {
+        try {
+            RepeatInfo_EventData data = std::any_cast<RepeatInfo_EventData>(eventData);
+            repeat_info(data.Rate, data.Delay);
+        } catch (const std::bad_any_cast &err) {
+            std::cerr << __PRETTY_FUNCTION__ << ": "
+                      << "Event data error: Type mismatch."
+                      << std::endl;
+        }
+    });
+
 }
 
 auto Keyboard::HandleRelease() -> void {

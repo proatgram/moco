@@ -24,4 +24,13 @@ target_include_directories(moco_helper_Matrix
         $<INSTALL_INTERFACE:include/compositor/helper>
 )
 
+add_library(moco_Events INTERFACE)
+add_library(moco::Events ALIAS moco_Events)
+
+target_include_directories(moco_Events
+    INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/compositor>
+        $<INSTALL_INTERFACE:include/compositor>
+)
+
 add_subdirectory("wayland")

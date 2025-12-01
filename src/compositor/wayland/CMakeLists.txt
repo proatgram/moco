@@ -122,4 +122,6 @@ target_link_libraries(moco_wayland_Keyboard
         wayland-server++
         wayland-server-extra++
         PkgConfig::xkbcommon
+        moco::Events
+        moco::wayland::Surface
 )
