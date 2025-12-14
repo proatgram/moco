@@ -34,3 +34,4 @@ target_include_directories(moco_Events
 )
 
 add_subdirectory("wayland")
+add_subdirectory("backend")
